@@ -368,6 +368,18 @@ message CSVOutputPluginArgs {
     }, default=true];
 }
 
+message LocalCSVOutputPluginArgs {
+  optional string output_dir = 1 [(sem_type) = {
+      description: "local path where resulting CSV files will be written "
+      "to. If unset, results will be written to a file with a unique "
+      "identifier under the current working directory",
+      label: ADVANCED
+    }];
+  optional ExportOptions export_options = 2 [(sem_type) = {
+      description: "Export options.",
+      label: ADVANCED
+    }];
+}
 
 message CollectionPluginArgs {
   optional string collection_name = 1 [(sem_type) = {

@@ -6,7 +6,8 @@
 import csv
 import threading
 import urllib
-
+import time
+import os
 from grr.lib import aff4
 from grr.lib import config_lib
 from grr.lib import email_alerts
@@ -285,6 +286,54 @@ class CSVOutputPlugin(HuntOutputPlugin):
       output_file.Flush()
     self.last_updated = rdfvalue.RDFDatetime().Now()
 
+class LocalCSVOutputPluginArgs(rdfvalue.RDFProtoStruct):
+  protobuf = flows_pb2.LocalCSVOutputPluginArgs
+
+class LocalCSVOutputPlugin(CSVOutputPlugin):
+  """
+  Hunt output plugin that writes hunt's results to CSV file on the local FS.
+  """
+  name = "local_csv"
+  description = "Write CSV file to local filesystem"
+  args_type = LocalCSVOutputPluginArgs
+  
+  def ProcessResponses(self, responses):
+    default_metadata = rdfvalue.ExportedMetadata(
+        source_urn=self.state.collection_urn)
+    # This is thread-safe - we just convert the values.
+    converted_responses = export.ConvertValues(
+        default_metadata, responses, token=self.state.token,
+        options=self.state.args.export_options)
+
+    # This is not thread-safe, therefore WriteValueToCSVFile is synchronized.
+    self.WriteValuesToCSVFile(converted_responses)
+
+  def GetOutputFile(self, value_type):
+    """Initializes output file for a given value type."""
+    try:
+      output_file = self.state.files_by_type[value_type]
+    except KeyError:
+      if self.state.args.output_dir:
+        output_dir = self.state.args.output_dir
+      else:
+        output_dir = "export-%d" % int(time.time())
+        self.state.args.output_dir = output_dir
+      try:
+          os.makedirs(output_dir)
+      except OSError:
+        pass
+
+      output_file = open(os.path.join(output_dir, value_type + ".csv"), "w")
+      self.WriteCSVHeader(output_file, value_type)
+      self.state.files_by_type[value_type] = output_file
+
+    return output_file
+
+  def Flush(self):
+    for output_file in self.state.files_by_type.values():
+      output_file.flush()
+      os.fsync(output_file.fileno())
+    self.last_updated = rdfvalue.RDFDatetime().Now()
 
 class OutputPlugin(rdfvalue.RDFProtoStruct):
   """A proto describing the output plugin to create."""
