@@ -312,7 +312,7 @@ class DataAgnosticExportConverter(ExportConverter):
         continue
 
       field = None
-      if isinstance(desc, type_info.ProtoEnum):
+      if isinstance(desc, type_info.ProtoEnum) and not isinstance(desc, type_info.ProtoBoolean):
         field = message_type.field.add()
         field.type = descriptor_pb2.FieldDescriptorProto.TYPE_ENUM
         field.type_name = desc.enum_name
