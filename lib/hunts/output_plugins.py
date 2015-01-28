@@ -3,7 +3,7 @@
 
 
 
-import csv
+import unicodecsv
 import threading
 import urllib
 import time
@@ -241,7 +241,7 @@ class CSVOutputPlugin(HuntOutputPlugin):
 
   def WriteCSVHeader(self, output_file, value_type):
     value_class = rdfvalue.RDFValue.classes[value_type]
-    csv.writer(output_file).writerow(self.GetCSVHeader(value_class))
+    unicodecsv.writer(output_file).writerow(self.GetCSVHeader(value_class))
 
   def GetCSVRow(self, value):
     row = []
@@ -254,7 +254,7 @@ class CSVOutputPlugin(HuntOutputPlugin):
     return row
 
   def WriteCSVRow(self, output_file, value):
-    csv.writer(output_file).writerow(self.GetCSVRow(value))
+    unicodecsv.writer(output_file).writerow(self.GetCSVRow(value))
 
   def GetOutputFile(self, value_type):
     """Initializes output AFF4Image for a given value type."""

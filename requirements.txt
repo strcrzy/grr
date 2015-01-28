@@ -29,5 +29,6 @@ pytz==2014.10
 rekall==1.2.0
 selenium==2.44.0
 six==1.8.0
+unicodecsv==0.9.4
 urllib3==1.10
 wsgiref==0.1.2
